@@ -1,0 +1,83 @@
+Measure bar: | tokens |
+
+All tokens within measure are seperated by white space
+| X Y |W Z|
+
+Repeated measure bars are ignored 
+|tokens||tokens|
+
+All whitespace is treated the same
+|tokens   | tokens |
+| tokens | 
+<=>
+| tokens | tokens | tokens | 
+
+Repeat: Repeat sequence in current measure natural number of times
+| tokens   | plays the sequence 1 time
+| tokens  :| repeats the sequence 1 time
+| tokens  :| <=> | tokens  | tokens  |
+| tokens ::| repeats the sequence 2 times
+| tokens ::| <=> | tokens  | tokens  | tokens  |
+| tokens :N| repeats the sequence N times
+| tokens :1| repeats the sequence 1 time
+| tokens :5| repeats the sequence 5 times
+
+":" or ":N" token must come at the of the measure or it will be ignored and a warning generated
+
+Pitch / Note: A A#/Bb B C C#/Db D D#/Eb E F F#/Gb G G#/Ab
+
+Octave Higher / 2X frequency: 'A# 'C 'Bb
+2 Octaves Higher / 4X frequency: ''C# ''F
+
+Octave Lower / 1/2 frequency: ,A# ,C ,Bb
+2 Octaves Lower / 1/4 frequency: ,,C# ,,F
+
+Duration: A natural number following the pitch representing the fraction of a whole note.
+Whole Note: A B C or A1 B1 C1
+Half Note: A2 'B2
+Third Note: A3 B3 C3 ''C#3 ,,Db3
+Quarter Note: A4 'D4 
+Eighth Note: A8 A#8 Bb8
+Any duration not filled in the measure will be a rest with a warning
+Durations exceeding measure count will be cut short with a warning
+
+Tied Notes: Previous note is held for additional duration
+C ^C  A4 ^A8
+| C | ^C | 'C#4 ^'C#4 ,C2 | ^,C |
+Tied note must start as matching note ends or tie will be ignored
+
+Slurred notes: No beginning or end between notes.  
+There will be differences in how instruments implement this behavior.
+|(A4 B4 C4) D4|
+
+Dotted notes: Increases duration geometrically by the number of dots
+Single dot: A4. <=> A4 ^A8
+Double dot: A4.. <=> A4 ^A8 ^A16
+ 
+Rests: Underscore followed by fractional duration
+Whole rest: _ or _1
+Half rest: _2
+Quarter rest: _4
+Dotted rest: _4.
+
+Stacato: Decreases note duration exponentially by number of backticks and inserts rest
+A`  <=> A2 _2
+A`` <=> A4 _2.
+Bb8` <=> Bb16 _16
+Bb8`` <=> Bb32 _16.
+
+Chords: Notes played at the same time.
+A-B-C A#-Bb-Db ''A-'A-A-,A-,,A
+Chords can be tied
+|A4-B4-C4 ^A4-C4-D4 B4-^C4-D2| 
+
+Volume marks: Set the volume for notes following
+0% 33% 80% 100% 
+
+Dynamic volume: Changes the volume over the duration of notes inside X%<<Y% or X%>>Y%
+0% < notes < 50%  
+50% > A2 B4 > 25%  
+80% | C | B2 B4 25% < D4 | A4 A4 Bb4 < 80% > C4 | D4 E4 > 25% C2 |
+
+Mary Had a Little Lamb
+Treble 4/4 120BPM | E4. D8 C4 D4 | E4 E4 E2 | D4 D4 D2 | E4 G4 G2 | E4. D8 C4 D4 | E4 E4 E4 E4 | D4 D4 E4 D4 | C |
