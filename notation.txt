@@ -49,6 +49,7 @@ Tied note must start as matching note ends or tie will be ignored
 Slurred notes: No beginning or end between notes.  
 There will be differences in how instruments implement this behavior.
 |(A4 B4 C4) D4|
+Slur markings are not allowed to be nested
 
 Dotted notes: Increases duration geometrically by the number of dots
 Single dot: A4. <=> A4 ^A8
@@ -78,6 +79,7 @@ Dynamic volume: Changes the volume over the duration of notes inside X%<<Y% or X
 0% < notes < 50%  
 50% > A2 B4 > 25%  
 80% | C | B2 B4 25% < D4 | A4 A4 Bb4 < 80% > C4 | D4 E4 > 25% C2 |
+Dynamic markings are not allowed to be nested
 
 Mary Had a Little Lamb
 Treble 4/4 120BPM | E4. D8 C4 D4 | E4 E4 E2 | D4 D4 D2 | E4 G4 G2 | E4. D8 C4 D4 | E4 E4 E4 E4 | D4 D4 E4 D4 | C |

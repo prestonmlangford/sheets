@@ -6,36 +6,13 @@ sheet = (
 )
 
 import re
-from token import token
+from lex import token
 import notation
 
 
-def preprocess(sheet):
-    # ignore repeated measure bars
-    sheet = re.sub("\|\s*\|","|",sheet)
-    
-    # replace all bars with space around bars to ensure whitespace
-    sheet = re.sub("\|"," | ",sheet)
-    
-    # make all whitespace single space
-    sheet = re.sub("\s+"," ",sheet)
-    
-    return sheet
 
-
-# returns
-# key signature
-def clheader(header):
-    print(header)
-
-
-def clsheet(instrument,sheet):
+def compile(instrument,sheet):
     sheet = preprocess(sheet)
-    
-    # break out contents
-    contents = sheet.split('|')
-    header = contents[0]
-    measures = contents[1:-1]
     
     # default 120 BPM
     tempo = 120
@@ -44,11 +21,10 @@ def clsheet(instrument,sheet):
     beat = 4
     length = 4
     
-    for token in header.split():
-        print(token)
-    
-    for measure in measures[1:-1]:
-        for token in measure.split():
-            print(token)
+    while(len(sheet) > 0):
+        id,pos,token = tokenize(sheet)
+        schedule_instrument(token)
+        sheet = sheet[pos:]
+
             
 compile(None,sheet)
