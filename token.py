@@ -22,7 +22,7 @@ def preprocess(sheet):
     
     return sheet
 
-def lex()
+#def lex()
 
 # returns ("id",position in string,quantified expression)
 def token(sheet):
