@@ -2,12 +2,6 @@ import re
 from token import next_token
 import notation
 
-def geometric(n):
-    r = 0
-    for i in range(n + 1):
-        r += 0.5**i
-    return r
-
 def preprocess(sheet):
     # ignore repeated measure bars |  | -> |
     sheet = re.sub(r"\|\s*\|","|",sheet)
@@ -26,16 +20,21 @@ def preprocess(sheet):
     return sheet
 
 def compile(instrument,sheet):
+
+    # defaults
+    A0 = 27.5 #Hz exactly 
+    tempo = 120/60 # beats per second
+    whole = 4 # beats in 4/4 time
+    beats_in_measure = 4 # beats in 4/4 time
+    scale = notation.equal_temperament # tuning of musical scale
+    clef = 4 # treble clef?
+    
+    # loop variables
+    measure = -1
+    time = 0
+    beats = beats_in_measure
+    
     sheet = preprocess(sheet)
-    
-    # default 120 BPM
-    tempo = 120
-    
-    # default 4/4 time
-    relative_duration = 4
-    beats_per_measure = 4
-    beats = beats_per_measure
-    
     while(len(sheet) > 0):
         result = next_token(sheet)
         if result is None:
@@ -44,30 +43,43 @@ def compile(instrument,sheet):
             return
         
         pos,kind,token = result
+        print(kind)
         
         if kind == "bar":
-            if beats < beats_per_measure:
+            if beats < beats_in_measure:
                 print("Not enough beats in measure")
                 print(beats)
                 print(sheet)
                 return
-            elif beats > beats_per_measure:
+            elif beats > beats_in_measure:
                 print("Too many beats in measure")
                 print(beats)
                 print(sheet)
                 return
             else:
+                measure += 1
                 beats = 0
-                
-        if kind == "note":
-            tie,lower,upper,note,duration,dots,stacato = token
-            beats += (relative_duration/duration)*geometric(dots)
-            print(beats)
+    
+        elif kind == "note":
+            tie,lower,upper,note,fraction,dots,stacato = token
             
+            duration = whole/fraction
+            duration *= 2 - 0.5**dots
+            rest = duration*(1 - 0.5**stacato)
+            duration -= rest            
+            
+            schedule = (measure*beats_in_measure + beats)/tempo
+            beats += duration + rest
+            
+            frequency = A0
+            frequency *= 2**(clef + upper - lower)
+            frequency *= scale[note]
+            
+            print("frequency: {:.3f}".format(frequency))
+            print("schedule: {:.3f}".format(schedule))
+            print("duration: {:.3f}".format(duration))
         
-        print(kind)
-        print(token)
-        print()
+        print("+")
         sheet = sheet[pos:]
 
 

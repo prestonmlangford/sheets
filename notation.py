@@ -35,3 +35,24 @@ piano	        p	soft
 pianissimo	    pp	very soft
 pianississimo	ppp	very very soft
 """
+
+_12r2 = 2**(1/12)
+equal_temperament = {
+    "C" : _12r2**-9,
+    "C#" : _12r2**-8,
+    "Db" : _12r2**-8,
+    "D" : _12r2**-7,
+    "D#" : _12r2**-6,
+    "Eb" : _12r2**-6,
+    "E" : _12r2**-5,
+    "F" : _12r2**-4,
+    "F#" : _12r2**-3,
+    "Gb" : _12r2**-3,
+    "G" : _12r2**-2,
+    "G#" : _12r2**-1,
+    "Ab" : _12r2**-1,
+    "A" : _12r2**0,
+    "A#" : _12r2**1,
+    "Bb" : _12r2**1,
+    "B" : _12r2**2,
+}
