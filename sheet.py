@@ -19,8 +19,9 @@ def preprocess(sheet):
     
     return sheet
 
-def compile(instrument,sheet):
-
+def compile(instrument,sheet,path):
+    score = open(path,'w')
+    
     # defaults
     A0 = 27.5 #Hz exactly 
     tempo = 120/60 # beats per second
@@ -77,18 +78,21 @@ def compile(instrument,sheet):
             
             print("frequency: {:.3f}".format(frequency))
             print("schedule: {:.3f}".format(schedule))
-            print("duration: {:.3f}".format(duration))
+            print("duration: {:.3f}".format(duration/tempo))
+            score.write("i 1 {:.3f} {:.3f} {:.3f}\n".format(schedule,duration/tempo,frequency))
         
         print("+")
         sheet = sheet[pos:]
-
-
-
-compile(None,
     
+    score.close()
+
+
+sheet = (
     # Mary Had a Little Lamb
     
     #"treble? 4/4 120bpm 50%"
     " |E4. D8 C4 D4|E4 E4 E2   |D4 D4 D2   |E4 G4 G2|\n"
     " |E4. D8 C4 D4|E4 E4 E4 E4|D4 D4 E4 D4|C| "
 )
+
+compile(None,sheet,"score.csd")
