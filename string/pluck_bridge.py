@@ -1,8 +1,19 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation as animate
 import numpy as np
-from scipy.io.wavfile import write
-from audio import play
+pi = np.pi
+
+import scipy.io.wavfile
+
+def write(file,data,fs):
+    max_data = np.max(np.abs(data))
+    scaled_data = 32767*data/max_data
+    scipy.io.wavfile.write(
+        filename = file,
+        rate = fs,
+        data = scaled_data.astype(np.int16)
+    )
+
 import scipy.fftpack
 
 def dst(x):
@@ -18,20 +29,6 @@ def goertzel(v,w,axis=1):
     
 def goertzel1(v,w,axis=0):
     return np.sum(w*v*np.cos(w),axis=axis)
-    
-
-
-from scipy import signal
-
-def psd_plot(data,fs):
-    f, Pxx_den = signal.welch(data, fs)
-    print(f[np.argmax(Pxx_den)])
-    plt.semilogy(f, Pxx_den)
-    plt.xlim([0,1000])
-    plt.ylim([0.5e-3, 1])
-    plt.xlabel('frequency [Hz]')
-    plt.ylabel('PSD')
-    plt.show()
 
 """
 U'' = T/mu*Uxx - 2*s0*U' + s1*U'xx + E*Uxxxx
@@ -50,61 +47,51 @@ V'' = a*V' + b*V
 # characteristic equation
 # U'' = T/mu*Uxx - 2*s0*U' + s1*U'xx + E*Uxxxx
 
-L = 0.648/4
-T = 70      # N
-mu = 0.02     # kg/m^3
-s0 = 1
-s1 = 0#1e-6
-E = 1.5e-5
-N = 32
-d = 1e-2
-h = 100
-pi = np.pi
-fs = 44100 # hz
-period = 5  # s
+L = 0.648/4     # length of string
+T = 70          # tension of string N
+mu = 0.02       # density of string kg/m^3
+s0 = 1.8        # string damping
+s1 = 1e-4       # frequency dependent string damping
+E  = 1e-3       # stiffness of string
+N  = 32          # number of simulated modes
+d  = 0.1        # bridge dampig ratio
+fb = 600   # bridge resonant frequency
+fs = 44100      # sampling frequency for audio (hz)
+period = 3      # sampling period for audio
+
 samples = int(period*fs)
 
 # [0,1,2,3,0,-3,-2,-1,0,1,2, . . .] n includes 1,2,3 but not the symmetry points
 x = np.linspace(0,L,N+2) 
 k = np.linspace(0,N-1,N).reshape(1,N)
-n = k
 t = np.linspace(0,period,samples)
 
 x0 = L/4
 pluck = (x/x0)*(x<x0) + (L-x)/(L-x0)*(x>=x0)
-#f = np.sin(pi*x/L)
 u0 = pluck[1:-1] # leave off the endpoints.  They are always zero and not included in the DST.
 v0 = dst(u0)
-vp0 = v0*0 # zeros, same shape as v0
 w  = pi*(k + 1)/L
-w2 = w*w
-a  = 2*s0 + w2*s1
-b  = w2*(T/mu - w2*E)
+a  = 2*s0 + w*w*s1
+b  = w*w*(T/mu - w*w*E)
 p = a/2
 q = np.sqrt(np.abs(p*p - b))
 beta = p/q
-sinw = np.sin(w).reshape(N,1)
+wcosw = (v0*w*np.cos(w)/L).reshape(N,1)
+
+wb = 2*pi*fb
+ar = -2*d*wb
+br = -wb*wb
 
 def f(y,ts):
     r = y[0]
     rp = y[1]
-    v = v0*np.exp(-p*ts)*(np.cos(q*ts) + beta*np.sin(q*ts))
-    ux = np.dot(v,sinw)/L
-    rpp = -d*rp - h*r + ux
+    v = np.exp(-p*ts)*(np.cos(q*ts) + beta*np.sin(q*ts))
+    ux = np.dot(v,wcosw)
+    rpp = ar*rp + br*r + ux
     return [rp,rpp,ux]
 
 y0 = [0,0,0]
 y = ode(f,y0,t)
-# vp = y[:,N:2*N]
-# up = idst(vp)
 bridge = y[:,1]
-string = y[:,2]
-plt.plot(t,bridge)
-plt.show()
-plt.plot(t,string)
-plt.show()
 
-#bridge = string
-wav = (bridge/np.max(np.abs(bridge))*32767).astype(np.int16)
-write("pluck.wav",fs,wav)
-play("pluck.wav")
+write("pluck.wav",bridge,fs)
