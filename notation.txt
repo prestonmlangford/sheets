@@ -12,15 +12,15 @@ All whitespace is treated the same
 <=>
 | tokens | tokens | tokens | 
 
-Repeat: Repeat sequence in current measure natural number of times
+Repeat: Repeat sequence from start to end of repeat section natural number of times
 | tokens   | plays the sequence 1 time
-| tokens  :| repeats the sequence 1 time
-| tokens  :| <=> | tokens  | tokens  |
-| tokens ::| repeats the sequence 2 times
-| tokens ::| <=> | tokens  | tokens  | tokens  |
-| tokens :N| repeats the sequence N times
-| tokens :1| repeats the sequence 1 time
-| tokens :5| repeats the sequence 5 times
+|: measures  :| repeats the sequence 1 time
+|: measures ::| repeats the sequence 2 times
+|: measures :N| repeats the sequence N times
+|: measures :1| repeats the sequence 1 time
+|: measures :5| repeats the sequence 5 times
+
+|: A B C D | E F G2 :| => | A B C D | E F G2 | A B C D | E F G2 |
 
 ":" or ":N" token must come at the of the measure or it will be ignored and a warning generated
 
