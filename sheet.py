@@ -22,7 +22,7 @@ def compile(sheet):
     while pos < len(sheet):
         
         # raises TokenError
-        _pos,kind,quant = token.next(sheet[pos:])
+        _pos,kind,quant = token.next(sheet,pos)
         pos += _pos
         
         if kind == "bar":

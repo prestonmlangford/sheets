@@ -14,32 +14,31 @@ _rgx_rest = re.compile(r"\_(\d*)(\.*)\s")
 
 # returns (position in string,type of expression,quantified expression) 
 # raises an exception if there is no match
-def next(sheet):
-
-    match = _rgx_bar.match(sheet)
+def next(sheet,position):    
+    match = _rgx_bar.match(sheet[position:])
     if match:
         return match.end(),"bar", None
 
-    match = _rgx_time.match(sheet)
+    match = _rgx_time.match(sheet[position:])
     if match:
         num, den = match.groups()
         return match.end(),"time", (int(num),int(den))
 
-    match = _rgx_volume.match(sheet)
+    match = _rgx_volume.match(sheet[position:])
     if match:
         volume = match.group(1)
         return match.end(),"volume", int(volume)
 
-    match = _rgx_dynamic.match(sheet)
+    match = _rgx_dynamic.match(sheet[position:])
     if match:
         return match.end(),"dynamic", None # PMLFIXME
 
-    match = _rgx_tempo.match(sheet)
+    match = _rgx_tempo.match(sheet[position:])
     if match:
         tempo = match.group(1)
         return match.end(),"tempo", int(tempo)
 
-    match = _rgx_note.match(sheet)
+    match = _rgx_note.match(sheet[position:])
     if match:
         tie,lower,upper,note,fraction,dots,stacato = match.groups()
         
@@ -53,7 +52,7 @@ def next(sheet):
             len(stacato)
         )
 
-    match = _rgx_rest.match(sheet)
+    match = _rgx_rest.match(sheet[position:])
     if match:
         fraction,dots = match.groups()
         fraction = 1 if fraction is '' else fraction
@@ -63,8 +62,8 @@ def next(sheet):
             len(dots)
         )
 
-    raise TokenError(sheet)
-        
+    raise TokenError("Unknown symbol in measure",sheet,position)
+
 
 def copy_repeats(sheet):
     while True:
@@ -73,13 +72,19 @@ def copy_repeats(sheet):
         # no more repeat symbols
         if pos == -1: 
             break
-
+        
         match = _rgx_repeat.match(sheet[pos:])
         if not match:
-            raise TokenError(sheet[pos:])
+            raise TokenError("Unmatched repeat sign in measure",sheet,pos)
         
         body,_,digits,colons = match.groups()
         start, end = match.span()
+        
+        if sheet[pos + start - 2] != '|':
+            raise TokenError("Repeat sign not at start of measure",sheet,pos)
+        
+        if sheet[pos + end] != '|':
+            raise TokenError("Repeat sign not at end of measure",sheet,pos)
         
         if digits is not None:
             num = int(digits)
@@ -87,14 +92,13 @@ def copy_repeats(sheet):
             num = len(colons)
         else:
             # this shouldn't happen if there was a match
-            raise TokenError(sheet[match.end()-5:])
+            raise TokenError("Unknown repeat sign match error",sheet,pos)
         
         dups = body
         for _ in range(num):
             dups += "| " + body
         
         sheet = sheet[:pos+start] + dups + sheet[pos+end:]
-        
         
     return sheet
     
@@ -103,8 +107,14 @@ def preprocess(sheet):
     # ignore repeated measure bars |  | -> |
     sheet = re.sub(r"\|\s*\|","|",sheet)
     
-    # replace all bars with space around bars to ensure whitespace B|A -> B | A
+    # add whitespace around measure bars B|A -> B | A
     sheet = re.sub(r"\|"," | ",sheet)
+    
+    # add whitespace around repeat signs
+    # match any colon not followed by another colon or digit
+    sheet = re.sub(r"\:(?!\:|\d+)",": ",sheet)
+    # match any colon not preceded by another colon
+    sheet = re.sub(r"(?<!\:)\:"," :",sheet)
     
     # make all whitespace single space B\n|\tA -> B | A
     sheet = re.sub(r"\s+"," ",sheet)
