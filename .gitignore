@@ -1,6 +1,7 @@
 # system files
 .DS_Store
 .vscode
+out/
 
 # csound files
 *.sco
