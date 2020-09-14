@@ -1,3 +1,9 @@
+# system files
+.DS_Store
+
+# csound files
+*.sco
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
