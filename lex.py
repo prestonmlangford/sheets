@@ -52,6 +52,9 @@ def preprocess(sheet):
     # add whitespace around measure bars B|A -> B | A
     sheet = re.sub(r"\|"," | ",sheet)
     
+    # add whitespace before signature symbols
+    sheet = re.sub(r"\@"," @",sheet)
+    
     # add whitespace around repeat signs
     # match any colon not followed by another colon or digit
     sheet = re.sub(r"\:(?!\:|\d+)",": ",sheet)
@@ -76,44 +79,45 @@ def preprocess(sheet):
 # see https://regexr.com for help
 _rgx_bar = re.compile(r"\|\s")
 _rgx_repeat = re.compile(r"\:\s(.[^:]+)(\:(\d+)|(\:+))\s")
-_rgx_time = re.compile(r"(d+)\/(\d+)\s")
-_rgx_volume = re.compile(r"(\d+)\%\s")
+_rgx_time = re.compile(r"\@(d+)\/(\d+)\s")
+_rgx_volume = re.compile(r"\@(\d+)\%\s")
 _rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%\s")
-_rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]\s")
+_rgx_tempo = re.compile(r"\@(\d+)[Bb][Pp][Mm]\s")
 _rgx_note = re.compile(r"(\^?)(\,*)(\'*)(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)(\d*)(\.*)(\`*)\s")
 _rgx_rest = re.compile(r"\_(\d*)(\.*)\s")
 
+
 # returns (position in string,type of expression,quantified expression) 
 # raises an exception if there is no match
-def next(sheet,position):    
+def token(sheet,position):    
     match = _rgx_bar.match(sheet[position:])
     if match:
-        return match.end(),"bar", None
+        return match.end()+position,"bar", None
 
     match = _rgx_time.match(sheet[position:])
     if match:
         num, den = match.groups()
-        return match.end(),"time", (int(num),int(den))
+        return match.end()+position,"time", (int(num),int(den))
 
     match = _rgx_volume.match(sheet[position:])
     if match:
         volume = match.group(1)
-        return match.end(),"volume", int(volume)
+        return match.end()+position,"volume", int(volume)
 
     match = _rgx_dynamic.match(sheet[position:])
     if match:
-        return match.end(),"dynamic", None # PMLFIXME
+        return match.end()+position,"dynamic", None # PMLFIXME
 
     match = _rgx_tempo.match(sheet[position:])
     if match:
         tempo = match.group(1)
-        return match.end(),"tempo", int(tempo)
+        return match.end()+position,"tempo", int(tempo)
 
     match = _rgx_note.match(sheet[position:])
     if match:
         tie,lower,upper,note,fraction,dots,stacato = match.groups()
         
-        return match.end(),"note",(
+        return match.end()+position,"note",(
             tie is not '',
             len(lower),
             len(upper),
@@ -128,10 +132,9 @@ def next(sheet,position):
         fraction,dots = match.groups()
         fraction = 1 if fraction is '' else fraction
         
-        return match.end(),"rest", (
+        return match.end()+position,"rest", (
             int(fraction),
             len(dots)
         )
 
     raise TokenError("Unknown symbol in measure",sheet,position)
-

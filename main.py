@@ -1,4 +1,4 @@
-from sheet import compile
+from parse import compile
 from error import CompileError, TokenError
 import sys
 

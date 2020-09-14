@@ -4,15 +4,11 @@ Comments work the same as c comments
 /* comments
 also go here */
 
-Signature markings are placed in square brackets
-4/4 time -> [4/4]
-treble clef -> [treble]
-50% volume -> [50%]
-120 beats per minute -> 120BPM
-
-Signature markings can be placed in the same set 
-of square brackets seperated by whitespace
-[treble 4/4 50%]
+Signature markings are preceded by the @ symbol
+4/4 time -> @4/4
+treble clef -> @treble
+50% volume -> @50%
+120 beats per minute -> @120BPM
 
 Signature markings can be placed anywhere in the file
 

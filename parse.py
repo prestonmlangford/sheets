@@ -1,17 +1,20 @@
-import token 
+import lex 
 from error import CompileError, TokenError
 import notation
 
-# defaults
-A0 = 27.5 #Hz exactly 
-tempo = 120/60 # beats per second
-whole = 4 # beats in 4/4 time
-beats_in_measure = 4 # beats in 4/4 time
-scale = notation.equal_temperament # tuning of musical scale
-clef = 4 # treble clef?
 
 def compile(sheet):
-    sheet = token.preprocess(sheet)
+    sheet = lex.preprocess(sheet)
+    
+    # defaults
+    volume = 100
+    A0 = 27.5 #Hz exactly 
+    tempo = 120/60 # beats per second
+    whole = 4 # beats in 4/4 time
+    beats_in_measure = 4 # beats in 4/4 time
+    scale = notation.equal_temperament # tuning of musical scale
+    clef = 4 # treble clef?
+
     
     # loop variables
     output = ""
@@ -22,10 +25,21 @@ def compile(sheet):
     while pos < len(sheet):
         
         # raises TokenError
-        _pos,kind,quant = token.next(sheet,pos)
-        pos += _pos
+        pos,kind,token = lex.token(sheet,pos)
         
-        if kind == "bar":
+        
+        if kind == "tempo":
+            tempo = token
+        
+        elif kind == "volume":
+            volume = token
+        
+        elif kind == "time":
+            if beats != 0:
+                raise CompileError("Time change only allowed at beginning of measure")
+            beats_in_measure, whole = token
+        
+        elif kind == "bar":
             if beats < beats_in_measure:
                 raise CompileError(
                         "Not enough beats in measure: {} < {}"
@@ -42,13 +56,14 @@ def compile(sheet):
                 beats = 0
 
         elif kind == "note":
-            tie,lower,upper,note,fraction,dots,stacato = quant
+            tie,lower,upper,note,fraction,dots,stacato = token
             
             duration = whole/fraction
             duration *= 2 - 0.5**dots
             rest = duration*(1 - 0.5**stacato)
             duration -= rest
             
+            # PMLFIXME a change in tempo is going to break this
             schedule = measure_number*beats_in_measure + beats
             
             frequency = A0
@@ -59,7 +74,7 @@ def compile(sheet):
             beats += duration + rest
             
         elif kind == "rest":
-            fraction,dots = quant
+            fraction,dots = token
             
             rest = whole/fraction
             rest *= 2 - 0.5**dots
