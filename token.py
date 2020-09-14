@@ -1,6 +1,77 @@
 import re
 from error import TokenError
 
+def copy_repeats(sheet):
+    while True:
+        pos = sheet.find(':')
+        
+        # no more repeat symbols
+        if pos == -1: 
+            break
+        
+        match = _rgx_repeat.match(sheet[pos:])
+        if not match:
+            raise TokenError("Unmatched repeat sign in measure",sheet,pos)
+        
+        body,_,digits,colons = match.groups()
+        start, end = match.span()
+        
+        if sheet[pos + start - 2] != '|':
+            raise TokenError("Repeat sign not at start of measure",sheet,pos)
+        
+        if sheet[pos + end] != '|':
+            raise TokenError("Repeat sign not at end of measure",sheet,pos)
+        
+        if digits is not None:
+            num = int(digits)
+        elif colons is not None:
+            num = len(colons)
+        else:
+            # this shouldn't happen if there was a match
+            raise TokenError("Unknown repeat sign match error",sheet,pos)
+        
+        dups = body
+        for _ in range(num):
+            dups += "| " + body
+        
+        sheet = sheet[:pos+start] + dups + sheet[pos+end:]
+        
+    return sheet
+
+def preprocess(sheet):
+    
+    # remove single line comments
+    sheet = re.sub(r"\/\/.*$","",sheet,flags=re.MULTILINE)
+    
+    # remove multi line comments
+    sheet = re.sub(r"\/\*.*\*\/","",sheet,flags=re.DOTALL)
+    
+    # ignore repeated measure bars |  | -> |
+    sheet = re.sub(r"\|\s*\|","|",sheet)
+    
+    # add whitespace around measure bars B|A -> B | A
+    sheet = re.sub(r"\|"," | ",sheet)
+    
+    # add whitespace around repeat signs
+    # match any colon not followed by another colon or digit
+    sheet = re.sub(r"\:(?!\:|\d+)",": ",sheet)
+    # match any colon not preceded by another colon
+    sheet = re.sub(r"(?<!\:)\:"," :",sheet)
+    
+    # make all whitespace single space B\n|\tA -> B | A
+    sheet = re.sub(r"\s+"," ",sheet)
+    
+    # trim leading whitespace
+    sheet = sheet.lstrip(' ')
+    
+    # duplicate repeated measures
+    sheet = copy_repeats(sheet)
+    
+    # debug
+    print(sheet.replace(' ','+'))
+    
+    return sheet
+
 # these are compiled in advance for efficiency
 # see https://regexr.com for help
 _rgx_bar = re.compile(r"\|\s")
@@ -64,68 +135,3 @@ def next(sheet,position):
 
     raise TokenError("Unknown symbol in measure",sheet,position)
 
-
-def copy_repeats(sheet):
-    while True:
-        pos = sheet.find(':')
-        
-        # no more repeat symbols
-        if pos == -1: 
-            break
-        
-        match = _rgx_repeat.match(sheet[pos:])
-        if not match:
-            raise TokenError("Unmatched repeat sign in measure",sheet,pos)
-        
-        body,_,digits,colons = match.groups()
-        start, end = match.span()
-        
-        if sheet[pos + start - 2] != '|':
-            raise TokenError("Repeat sign not at start of measure",sheet,pos)
-        
-        if sheet[pos + end] != '|':
-            raise TokenError("Repeat sign not at end of measure",sheet,pos)
-        
-        if digits is not None:
-            num = int(digits)
-        elif colons is not None:
-            num = len(colons)
-        else:
-            # this shouldn't happen if there was a match
-            raise TokenError("Unknown repeat sign match error",sheet,pos)
-        
-        dups = body
-        for _ in range(num):
-            dups += "| " + body
-        
-        sheet = sheet[:pos+start] + dups + sheet[pos+end:]
-        
-    return sheet
-    
-def preprocess(sheet):
-    
-    # ignore repeated measure bars |  | -> |
-    sheet = re.sub(r"\|\s*\|","|",sheet)
-    
-    # add whitespace around measure bars B|A -> B | A
-    sheet = re.sub(r"\|"," | ",sheet)
-    
-    # add whitespace around repeat signs
-    # match any colon not followed by another colon or digit
-    sheet = re.sub(r"\:(?!\:|\d+)",": ",sheet)
-    # match any colon not preceded by another colon
-    sheet = re.sub(r"(?<!\:)\:"," :",sheet)
-    
-    # make all whitespace single space B\n|\tA -> B | A
-    sheet = re.sub(r"\s+"," ",sheet)
-    
-    # trim leading whitespace
-    sheet = sheet.lstrip(' ')
-    
-    # duplicate repeated measures
-    sheet = copy_repeats(sheet)
-    
-    # debug
-    print(sheet.replace(' ','+'))
-    
-    return sheet

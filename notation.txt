@@ -1,9 +1,27 @@
+Comments work the same as c comments 
+// comment goes here
+| m u s i c | g o e s | h e r e |
+/* comments
+also go here */
+
+Signature markings are placed in square brackets
+4/4 time -> [4/4]
+treble clef -> [treble]
+50% volume -> [50%]
+120 beats per minute -> 120BPM
+
+Signature markings can be placed in the same set 
+of square brackets seperated by whitespace
+[treble 4/4 50%]
+
+Signature markings can be placed anywhere in the file
+
 Measure bar: | tokens |
 
 All tokens within measure are seperated by white space
 | X Y |W Z|
 
-Repeated measure bars are ignored 
+Repeated measure bars are treated as one measure bar 
 |tokens||tokens|
 
 All whitespace is treated the same

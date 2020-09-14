@@ -1,14 +1,18 @@
-from sheet import compile, CompileError
+from sheet import compile
 from error import CompileError, TokenError
 import sys
 
-sheet = (
-    # Mary Had a Little Lamb
-    
-    #"treble? 4/4 120bpm 50%"
-    " |:E4. D8 C4 D4|E4 E4 E2   :|:D4 D4 D2   :|E4 G4 G2|:_2 C12 C12 C12 C4` :|\n"
-    " |E4. D8 C4 D4|E4 E4 E4 E4|D4 D4 E4 D4|C| "
-)
+if len(sys.argv) < 2:
+    print("Need at least one argument")
+    sys.exit(-1)
+
+if not ".sht" in sys.argv[1]:
+    print("Expecting .sht file for first argument")
+    sys.exit(-1)
+
+shtfile = open(sys.argv[1])
+sheet = shtfile.read()
+shtfile.close()
 
 try:
     score = compile(sheet)
@@ -19,6 +23,15 @@ except TokenError as err:
     print(err)
     sys.exit(-1)
 
-out = open("score.sco",'w')
+
+
+if (len(sys.argv) >= 3) and (".sco" in sys.argv[2]):
+    outpath = sys.argv[2]
+else:
+    outpath = "out.sco"
+
+out = open(outpath,'w')
 out.write(score)
 out.close()
+
+sys.exit(0)
