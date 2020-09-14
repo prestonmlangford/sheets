@@ -79,10 +79,10 @@ def preprocess(sheet):
 # see https://regexr.com for help
 _rgx_bar = re.compile(r"\|\s")
 _rgx_repeat = re.compile(r"\:\s(.[^:]+)(\:(\d+)|(\:+))\s")
-_rgx_time = re.compile(r"\@(d+)\/(\d+)\s")
-_rgx_volume = re.compile(r"\@(\d+)\%\s")
+_rgx_time = re.compile(r"(\d+)\/(\d+)\s")
+_rgx_volume = re.compile(r"(\d+)\%\s")
 _rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%\s")
-_rgx_tempo = re.compile(r"\@(\d+)[Bb][Pp][Mm]\s")
+_rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]\s")
 _rgx_note = re.compile(r"(\^?)(\,*)(\'*)(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)(\d*)(\.*)(\`*)\s")
 _rgx_rest = re.compile(r"\_(\d*)(\.*)\s")
 

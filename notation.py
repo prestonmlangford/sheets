@@ -1,4 +1,4 @@
-
+# coding: utf-8
 # https://en.wikipedia.org/wiki/Tempo
 tempo_markings = {
     "adagissimo" : 20,          # very slowly

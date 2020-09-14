@@ -10,7 +10,7 @@ instr 1
 a simple sine wave with envelope
 sounds a bit like a flue 
 */
-ares linen  0.7, 0.1*p3, p3, 0.1*p3
+ares linen  p5, 0.1*p3, p3, 0.1*p3
 asig poscil ares, p4
      outs asig, asig
 

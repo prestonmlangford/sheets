@@ -14,16 +14,16 @@ shtfile = open(sys.argv[1])
 sheet = shtfile.read()
 shtfile.close()
 
-try:
-    score = compile(sheet)
-except CompileError as err:
-    print(err)
-    sys.exit(-1)
-except TokenError as err:
-    print(err)
-    sys.exit(-1)
+# try:
+#     score = compile(sheet)
+# except CompileError as err:
+#     print(err)
+#     sys.exit(-1)
+# except TokenError as err:
+#     print(err)
+#     sys.exit(-1)
 
-
+score = compile(sheet)
 
 if (len(sys.argv) >= 3) and (".sco" in sys.argv[2]):
     outpath = sys.argv[2]
