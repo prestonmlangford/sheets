@@ -8,7 +8,7 @@ nchnls = 2
 instr 1
 /* 
 a simple sine wave with envelope
-sounds a bit like a flue 
+sounds a bit like a flute 
 */
 ares linen  p5, 0.1*p3, p3, 0.1*p3
 asig poscil ares, p4
