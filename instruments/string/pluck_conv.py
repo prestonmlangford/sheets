@@ -1,5 +1,3 @@
-from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation as animate
 import numpy as np
 pi = np.pi
 
@@ -7,12 +5,26 @@ import scipy.io.wavfile
 
 def write(file,data,fs):
     max_data = np.max(np.abs(data))
-    scaled_data = 32767*data/max_data
+    scaled_data = 26000*data/max_data
     scipy.io.wavfile.write(
         filename = file,
         rate = fs,
         data = scaled_data.astype(np.int16)
     )
+
+def read(file):
+    rate, data = scipy.io.wavfile.read(file)
+    print(
+        "scipy.io.wavfile.read(" + file + ") -> " 
+        + str(rate) + " Hz, " + 
+        str(data.shape)
+    )
+    return data
+
+import scipy.signal
+
+def filter(num,den,signal):
+    return scipy.signal.lfilter(num,den,signal,axis=0)
 
 import scipy.fftpack
 
@@ -74,19 +86,19 @@ B3 = 246.94
 G3 = 196.00
 D3 = 146.83
 A2 = 110.00
-E2 = 82.41
+E2 =  82.41
 
-Lf = 0.650/4    # length of whole string for fundamental [m]
-xp = 0.25*Lf    # point on string where the pluck occurs [m]
-fret = 4        # the selected fret
-ff = 182.6      # fundamental vibration frequency [hz]
+Lf = 0.650      # length of whole string for fundamental [m]
+xp = 0.1*Lf    # point on string where the pluck occurs [m]
+fret = 0       # the selected fret
+ff = E2         # fundamental vibration frequency [hz]
 m  = 1.62e-3    # linear density of string [kg/m]
-s0 = 5.83e-3    # string damping
-s1 = 1.62e-7    # frequency dependent string damping
+s0 = 7e-3       # string damping
+s1 = 2e-7       # frequency dependent string damping
 EI = 1e-6       # stiffness of string
 N  = 32         # number of simulated modes
-d  = 0.1        # bridge damping ratio
-fb = 3000       # bridge resonant frequency
+d  = 0.5        # bridge damping ratio
+fb = ff        # bridge resonant frequency
 fs = 44100      # sampling frequency for audio (hz)
 period = 3      # sampling period for audio
 
@@ -94,30 +106,29 @@ period = 3      # sampling period for audio
 # fret positions
 # https://www.stewmac.com/FretCalculator.html
 scale = {
-    0 : 0.0,
-    1 : 0.056126153846153846,
-    2 : 0.10910153846153846,
-    3 : 0.15910307692307693,
-    4 : 0.2063,
-    5 : 0.2508461538461539,
-    6 : 0.29289384615384617,
-    7 : 0.33258,
-    8 : 0.37004000000000004,
-    9 : 0.40539692307692304,
-    10 : 0.43876923076923074,
-    11 : 0.4702676923076923,
-    12 : 0.5,
-    13 : 0.5280630769230769,
-    14 : 0.5545507692307693,
-    15 : 0.5795523076923077,
-    16 : 0.6031492307692308,
-    17 : 0.6254230769230769,
-    18 : 0.6464461538461539,
-    19 : 0.6662907692307692,
-    20 : 0.68502,
-    21 : 0.7026984615384616,
+     0 : 0.0000,
+     1 : 0.0561,
+     2 : 0.1091,
+     3 : 0.1591,
+     4 : 0.2063,
+     5 : 0.2508,
+     6 : 0.2928,
+     7 : 0.3325,
+     8 : 0.3700,
+     9 : 0.4053,
+    10 : 0.4387,
+    11 : 0.4702,
+    12 : 0.5000,
+    13 : 0.5280,
+    14 : 0.5545,
+    15 : 0.5795,
+    16 : 0.6031,
+    17 : 0.6254,
+    18 : 0.6464,
+    19 : 0.6662,
+    20 : 0.6850,
+    21 : 0.7026,
 }
-
 
 samples = int(period*fs)
 
@@ -126,7 +137,7 @@ L = Lf*(1 - scale[fret])
 # [0,1,2,3,0,-3,-2,-1,0,1,2, . . .] n includes 1,2,3 but not the symmetry points
 x = np.linspace(0,L,N+2) 
 k = np.linspace(0,N-1,N).reshape(1,N)
-t = np.linspace(0,period,samples)
+t = np.linspace(0,period,samples).reshape(samples,1)
 
 
 pluck = (x/xp)*(x<xp) + (L-x)/(L-xp)*(x>=xp)
@@ -141,21 +152,24 @@ q = np.sqrt(np.abs(p*p - b))
 beta = p/q
 v0Lwcosw = (v0*(w/L)*np.cos(w)).reshape(N,1)
 
-ar = 2*d*fb
-br = fb*fb
+pt = p*t
+qt = q*t
+v = np.exp(pt)*(np.cos(qt) + beta*np.sin(qt))
+ux = np.dot(v,v0Lwcosw)[:,0]
 
-def f(y,ts):
-    v = np.exp(p*ts)*(np.cos(q*ts) + beta*np.sin(q*ts))
-    ux = np.dot(v,v0Lwcosw)
-    
-    r = y[0]
-    rp = y[1]
-    rpp = -ar*rp - br*r + ux
-    
-    return [rp,rpp,ux]
+# a[0]*y[n] = b[0]*x[n] + b[1]*x[n-1] + ... + b[M]*x[n-M] - a[1]*y[n-1] - ... - a[N]*y[n-N]
 
-y0 = [0,0,0]
-y = ode(f,y0,t)
-bridge = y[:,1]
+
+wn = 2*pi*fb/fs
+den = np.array([
+    1 + wn*wn + d*wn,
+    -2,
+    1 - d*wn
+])
+
+num = np.array([1/(fs*fs)])
+
+bridge = filter(num,den,ux)
+
 
 write("pluck.wav",bridge,fs)

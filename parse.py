@@ -2,7 +2,6 @@ import lex
 from error import CompileError, TokenError
 import notation
 
-
 def compile(sheet):
     sheet = lex.preprocess(sheet)
     
@@ -72,7 +71,6 @@ def compile(sheet):
             
             output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
             time += beats/tempo
-            
             
         elif kind == "rest":
             fraction,dots = token
