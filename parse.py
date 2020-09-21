@@ -11,7 +11,6 @@ def compile(sheet):
     beats_per_whole = 4 # beats in 4/4 time
     beats_per_measure = 4 # beats in 4/4 time
     octave = 4 # treble clef?
-
     
     # loop variables
     output = ""
