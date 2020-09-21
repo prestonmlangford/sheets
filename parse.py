@@ -1,6 +1,5 @@
 import lex 
 from error import CompileError, TokenError
-import notation
 
 def compile(sheet):
     sheet = lex.preprocess(sheet)
@@ -11,8 +10,7 @@ def compile(sheet):
     tempo = 120/60 # beats per second
     beats_per_whole = 4 # beats in 4/4 time
     beats_per_measure = 4 # beats in 4/4 time
-    scale = notation.equal_temperament # tuning of musical scale
-    clef = 4 # treble clef?
+    octave = 4 # treble clef?
 
     
     # loop variables
@@ -65,9 +63,8 @@ def compile(sheet):
             beats = duration + rest
             beat += beats
             
-            frequency = A0
-            frequency *= 2**(clef + upper - lower)
-            frequency *= scale[note]
+            # equal temperament scale
+            frequency = A0*2**(octave + upper - lower + note/12)
             
             output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
             time += beats/tempo

@@ -2,6 +2,7 @@ import pysound
 from opcode import linen
 import numpy as np
 pi = np.pi
+import notation 
 
 import scipy.signal
 
@@ -13,13 +14,15 @@ import scipy.fftpack
 def dst(x):
     return np.real(scipy.fftpack.dst(x,type=1))/2
 
-# PMLFIXME redefine these with equal temperament to get an exact tuning
-E4 = 329.63
-B3 = 246.94
-G3 = 196.00
-D3 = 146.83
-A2 = 110.00
-E2 =  82.41
+
+_A0 = notation.A0
+_scale = notation.scale
+_E4 = _A0*2**(4 + _scale["E"]/12)
+_B3 = _A0*2**(3 + _scale["B"]/12)
+_G3 = _A0*2**(3 + _scale["G"]/12)
+_D3 = _A0*2**(3 + _scale["D"]/12)
+_A2 = _A0*2**(2 + _scale["A"]/12)
+_E2 = _A0*2**(2 + _scale["E"]/12)
 
 DEFAULT_PARAMETERS = {
         "neck length"                       : 0.650,
@@ -29,7 +32,7 @@ DEFAULT_PARAMETERS = {
         "string damping by velocity"        : 3e-3,
         "string damping by mode velocity"   : 20e-7,
         "string stiffness"                  : 1e-5,
-        "string tuning"                     : [E2,A2,D3,G3,B3,E4],
+        "string tuning"                     : [_E2,_A2,_D3,_G3,_B3,_E4],
         "attack"                            : 0.01,
         "decay"                             : 0.01,
 }

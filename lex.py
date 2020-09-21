@@ -1,5 +1,6 @@
 import re
 from error import TokenError
+import notation
 
 def copy_repeats(sheet):
     while True:
@@ -121,7 +122,7 @@ def token(sheet,position):
             tie is not '',
             len(lower),
             len(upper),
-            note,
+            notation.scale[note],
             1 if fraction is '' else int(fraction),
             len(dots),
             len(stacato)
