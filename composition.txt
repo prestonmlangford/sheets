@@ -1,0 +1,9 @@
+This is an overview of intended features for pysound music composition scripting.
+
+
+
+track = compile(instrument,sheet)
+
+track = instrument.play(sheet)
+g1 = guitar.play("g1.sht")
+v2 = violin.play("v1.sht")

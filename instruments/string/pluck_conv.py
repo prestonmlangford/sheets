@@ -1,11 +1,12 @@
+import sys
 import numpy as np
 pi = np.pi
-
+from audio import play
 import scipy.io.wavfile
 
 def write(file,data,fs):
     max_data = np.max(np.abs(data))
-    scaled_data = 26000*data/max_data
+    scaled_data = 8000*data/max_data
     scipy.io.wavfile.write(
         filename = file,
         rate = fs,
@@ -80,7 +81,6 @@ let p = -a/2
 let q = sqrt((p^2) - b)
 r = p +- q
 """
-
 E4 = 329.63
 B3 = 246.94
 G3 = 196.00
@@ -89,33 +89,29 @@ A2 = 110.00
 E2 =  82.41
 
 Lf = 0.650      # length of whole string for fundamental [m]
-xp = 0.1*Lf    # point on string where the pluck occurs [m]
-fret = 0       # the selected fret
-ff = E2         # fundamental vibration frequency [hz]
+xp = 0.25*Lf    # point on string where the pluck occurs [m]
 m  = 1.62e-3    # linear density of string [kg/m]
-s0 = 7e-3       # string damping
-s1 = 2e-7       # frequency dependent string damping
-EI = 1e-6       # stiffness of string
-N  = 32         # number of simulated modes
-d  = 0.5        # bridge damping ratio
-fb = ff        # bridge resonant frequency
+s0 = 3e-3       # string damping
+s1 = 20e-7      # frequency dependent string damping
+EI = 1e-5       # stiffness of string
+N  = 2**4       # number of simulated modes
+d  = 0.9        # bridge damping ratio
 fs = 44100      # sampling frequency for audio (hz)
 period = 3      # sampling period for audio
-
 
 # fret positions
 # https://www.stewmac.com/FretCalculator.html
 scale = {
-     0 : 0.0000,
-     1 : 0.0561,
-     2 : 0.1091,
-     3 : 0.1591,
-     4 : 0.2063,
-     5 : 0.2508,
-     6 : 0.2928,
-     7 : 0.3325,
-     8 : 0.3700,
-     9 : 0.4053,
+    0 : 0.0000,
+    1 : 0.0561,
+    2 : 0.1091,
+    3 : 0.1591,
+    4 : 0.2063,
+    5 : 0.2508,
+    6 : 0.2928,
+    7 : 0.3325,
+    8 : 0.3700,
+    9 : 0.4053,
     10 : 0.4387,
     11 : 0.4702,
     12 : 0.5000,
@@ -132,44 +128,68 @@ scale = {
 
 samples = int(period*fs)
 
-
-L = Lf*(1 - scale[fret])
-# [0,1,2,3,0,-3,-2,-1,0,1,2, . . .] n includes 1,2,3 but not the symmetry points
-x = np.linspace(0,L,N+2) 
-k = np.linspace(0,N-1,N).reshape(1,N)
-t = np.linspace(0,period,samples).reshape(samples,1)
-
-
-pluck = (x/xp)*(x<xp) + (L-x)/(L-xp)*(x>=xp)
-u0 = pluck[1:-1] # leave off the endpoints.  They are always zero and not included in the DST.
-v0 = dst(u0)
-vw = 2*Lf*ff
-w  = pi*(k + 1)/L
-a  = (s0/m) + (s1/m)*w*w
-b  = w*w*(vw*vw - w*w*EI/m)
-p = -a/2
-q = np.sqrt(np.abs(p*p - b))
-beta = p/q
-v0Lwcosw = (v0*(w/L)*np.cos(w)).reshape(N,1)
-
-pt = p*t
-qt = q*t
-v = np.exp(pt)*(np.cos(qt) + beta*np.sin(qt))
-ux = np.dot(v,v0Lwcosw)[:,0]
-
-# a[0]*y[n] = b[0]*x[n] + b[1]*x[n-1] + ... + b[M]*x[n-M] - a[1]*y[n-1] - ... - a[N]*y[n-N]
+def pluck(ff,fret):
+    
+    L = Lf*(1 - scale[fret])
+    # [0,1,2,3,0,-3,-2,-1,0,1,2, . . .] n includes 1,2,3 but not the symmetry points
+    x = np.linspace(0,L,N+2) 
+    k = np.linspace(0,N-1,N).reshape(1,N)
+    t = np.linspace(0,period,samples).reshape(samples,1)
 
 
-wn = 2*pi*fb/fs
-den = np.array([
-    1 + wn*wn + d*wn,
-    -2,
-    1 - d*wn
-])
+    plk = (x/xp)*(x<xp) + (L-x)/(L-xp)*(x>=xp)
+    u0 = plk[1:-1] # leave off the endpoints.  They are always zero and not included in the DST.
+    v0 = dst(u0)
+    vw = 2*Lf*ff
+    w  = pi*(k + 1)/L
+    a  = (s0/m) + (s1/m)*w*w
+    b  = w*w*(vw*vw - w*w*EI/m)
+    p = -a/2
+    q = np.sqrt(np.abs(p*p - b))
+    beta = p/q
+    v0Lwcosw = (v0*(w/L)*np.cos(w)).reshape(N,1)
 
-num = np.array([1/(fs*fs)])
+    pt = p*t
+    qt = q*t
+    v = np.exp(pt)*(np.cos(qt) + beta*np.sin(qt))
+    ux = np.dot(v,v0Lwcosw)[:,0]
 
-bridge = filter(num,den,ux)
+    # a[0]*y[n] = b[0]*x[n] + b[1]*x[n-1] + ... + b[M]*x[n-M] - a[1]*y[n-1] - ... - a[N]*y[n-N]
+    
+    # den = 0
+    
+    # for fb in [E2,A2,D3,G3,B3,E4]:
+    #     wn = 2*pi*fb/fs
+    #     wn *= 200
+    #     den += np.array([
+    #         1 + wn*wn + d*wn,
+    #         -2,
+    #         1 - d*wn
+    #     ])
+
+    # num = np.array([1/(fs*fs)])
+    #bridge = filter(num,den,ux)
+    #return bridge 
+    
+    return ux
 
 
-write("pluck.wav",bridge,fs)
+cmajor = [None,3,2,0,1,0]
+cminor = [None,3,5,5,4,3]
+e2 =     [0]
+e4 =     [None,None,None,None,None,0]
+
+a2_1 =   [None,0]
+a2_2 =   [5,None]
+
+strings = [E2,A2,D3,G3,B3,E4]
+chord = cminor
+sound = 0
+for i,fret in enumerate(chord):
+    if fret is None: continue
+    string = strings[i]
+    sound += pluck(string,fret)
+
+out = sys.argv[1]
+write(out,sound,fs)
+play(out)

@@ -3,6 +3,7 @@
 .vscode
 out/
 *.wav
+*.aif
 
 # csound files
 *.sco
