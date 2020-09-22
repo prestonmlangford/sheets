@@ -1,6 +1,7 @@
 import lex 
 from error import CompileError, TokenError
 import pysound
+from pysound import add
 import numpy as np
 
 def compile(instrument,sheet):
@@ -8,7 +9,6 @@ def compile(instrument,sheet):
     
     # defaults
     volume = 100
-    A0 = 27.5 #Hz exactly 
     tempo = 120/60 # beats per second
     beats_per_whole = 4 # beats in 4/4 time
     beats_per_measure = 4 # beats in 4/4 time
@@ -20,13 +20,15 @@ def compile(instrument,sheet):
     measure_number = -1
     pos = 0
     time = 0
-    track = np.zeros((1,1))
+    track = np.zeros((1,))
     
     
     while pos < len(sheet):
-        
+        start = pos
         # raises TokenError
         pos,kind,token = lex.token(sheet,pos)
+        end = pos
+        print(sheet[start:end])
         
         if kind == "tempo":
             tempo = token/60
@@ -67,9 +69,8 @@ def compile(instrument,sheet):
             
             # equal temperament scale
             # frequency = A0*2**(octave + upper - lower + step/12)
-            sound = instrument.play(duration,octave + upper - lower, step)
-            pysound.add(track,time,sound)
-            
+            sound = instrument.play(volume,duration,octave + upper - lower, step)
+            track = add(track,time,sound)
             #output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
             time += beats/tempo
             

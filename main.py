@@ -1,6 +1,21 @@
 from parse import compile
 from error import CompileError, TokenError
 import sys
+import pysound
+import numpy as np
+import scipy.io.wavfile
+
+def write(file,data):
+    max_data = np.max(np.abs(data))
+    scaled_data = 8000*data/max_data
+    scipy.io.wavfile.write(
+        filename = file,
+        rate = pysound.fs,
+        data = scaled_data.astype(np.int16)
+    )
+
+
+from instruments.guitar import Guitar
 
 if len(sys.argv) < 2:
     print("Need at least one argument")
@@ -23,15 +38,16 @@ shtfile.close()
 #     print(err)
 #     sys.exit(-1)
 
-score = compile(sheet)
+guitar = Guitar()
+track = compile(guitar,sheet)
 
-if (len(sys.argv) >= 3) and (".sco" in sys.argv[2]):
+if (len(sys.argv) >= 3) and (".wav" in sys.argv[2]):
     outpath = sys.argv[2]
 else:
-    outpath = "out.sco"
+    outpath = "out.wav"
 
-out = open(outpath,'w')
-out.write(score)
-out.close()
+
+write(outpath,track)
+
 
 sys.exit(0)

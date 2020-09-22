@@ -72,7 +72,7 @@ def preprocess(sheet):
     sheet = copy_repeats(sheet)
     
     # debug
-    print(sheet.replace(' ','+'))
+    #print(sheet.replace(' ','+'))
     
     return sheet
 

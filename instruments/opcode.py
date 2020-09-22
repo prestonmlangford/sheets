@@ -13,5 +13,8 @@ def linen(signal,rise,decay):
     if ds > ss:
         raise ValueError("Decay time exceeds signal duration")
     
-    signal[0:rs] *= np.linspace(0,1,rs)
-    signal[ss-ds:] *= np.linspace(1,0,ds)
+    envelope = np.zeros(signal.shape) + 1
+    envelope[0:rs] *= np.linspace(0,1,rs)
+    envelope[ss-ds:] *= np.linspace(1,0,ds)
+
+    return signal*envelope

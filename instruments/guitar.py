@@ -1,5 +1,5 @@
 import pysound
-from opcode import linen
+from instruments.opcode import linen
 import numpy as np
 pi = np.pi
 import notation 
@@ -14,7 +14,8 @@ import scipy.fftpack
 def dst(x):
     return np.real(scipy.fftpack.dst(x,type=1))/2
 
-class Guitar(Instrument):
+
+class Guitar:
     def __init__(self):
         super().__init__()
         
@@ -75,8 +76,9 @@ class Guitar(Instrument):
             
         }
 
-    def play(self,notation):
-        pass
+    def play(self,volume,duration,octave,step):
+        string, fret = self.minfret(octave,step)
+        return self.pluck(duration,string,fret)
     
     def minfret(self,octave,step):
         result = None
@@ -97,11 +99,11 @@ class Guitar(Instrument):
         frets = self.chords[chord]
         for string,fret in enumerate(frets):
             if fret is None: continue
-            result += self.pluck(string,fret)
+            result += self.pluck(duration,string,fret)
         return result
 
 
-    def pluck(self,duration,string,fret,parameters=DEFAULT_PARAMETERS):
+    def pluck(self,duration,string,fret):
         
         Lf  = self.parameters["neck length"]
         xp  = self.parameters["pluck position"]
@@ -131,7 +133,7 @@ class Guitar(Instrument):
         beta = p/q
         v0Lwcosw = (v0*(w/L)*np.cos(w)).reshape(N,1)
         
-        samples = int(duration,pysound.fs)
+        samples = int(duration*pysound.fs)
         t = np.linspace(0,duration,samples).reshape(samples,1)
         
         pt = p*t
@@ -139,6 +141,7 @@ class Guitar(Instrument):
         v = np.exp(pt)*(np.cos(qt) + beta*np.sin(qt))
         ux = np.dot(v,v0Lwcosw)[:,0]
         return linen(ux,att,dec)
+
         
         # a[0]*y[n] = b[0]*x[n] + b[1]*x[n-1] + ... + b[M]*x[n-M] - a[1]*y[n-1] - ... - a[N]*y[n-N]
         

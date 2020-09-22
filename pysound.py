@@ -14,5 +14,7 @@ def add(track,time,clip):
         ds = t + cs - ts
         z = np.zeros((ds,))
         track = np.concatenate((track,z))
-        
+
     track[t:t + cs] += clip
+
+    return track
