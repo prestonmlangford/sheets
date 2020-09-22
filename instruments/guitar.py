@@ -20,12 +20,16 @@ class Guitar(Instrument):
         
         A0 = notation.A0
         scale = notation.scale
-        E4 = A0*2**(4 + scale["E"]/12)
-        B3 = A0*2**(3 + scale["B"]/12)
-        G3 = A0*2**(3 + scale["G"]/12)
-        D3 = A0*2**(3 + scale["D"]/12)
-        A2 = A0*2**(2 + scale["A"]/12)
-        E2 = A0*2**(2 + scale["E"]/12)
+        self.strings = [
+            12*2 + scale["E"],
+            12*2 + scale["A"],
+            12*3 + scale["D"],
+            12*3 + scale["G"],
+            12*3 + scale["B"],
+            12*4 + scale["E"]
+        ]
+        
+        ff = list(map(lambda exp: A0*2**(exp/12),self.strings))
 
         self.parameters = {
                 "neck length"                       : 0.650,
@@ -35,7 +39,7 @@ class Guitar(Instrument):
                 "string damping by velocity"        : 3e-3,
                 "string damping by mode velocity"   : 20e-7,
                 "string stiffness"                  : 1e-5,
-                "string tuning"                     : [E2,A2,D3,G3,B3,E4],
+                "string tuning"                     : ff,
                 "attack"                            : 0.01,
                 "decay"                             : 0.01,
         }
@@ -73,7 +77,21 @@ class Guitar(Instrument):
 
     def play(self,notation):
         pass
+    
+    def minfret(self,octave,step):
+        result = None
+        fn = 12*octave + step
+        _minfret = 100000
+        for string,fs in enumerate(self.strings):
+            if fn >= fs:
+                fret = fn - fs
+                if fret < _minfret:
+                    _minfret = fret
+                    result = (string,fret)
+                    
+        return result
         
+    
     def strum(self,duration,chord):
         result = 0
         frets = self.chords[chord]

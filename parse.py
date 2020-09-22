@@ -1,7 +1,9 @@
 import lex 
 from error import CompileError, TokenError
+import pysound
+import numpy as np
 
-def compile(sheet):
+def compile(instrument,sheet):
     sheet = lex.preprocess(sheet)
     
     # defaults
@@ -13,17 +15,18 @@ def compile(sheet):
     octave = 4 # treble clef?
     
     # loop variables
-    output = ""
+    # output = ""
     beat = 0
     measure_number = -1
     pos = 0
     time = 0
+    track = np.zeros((1,1))
+    
     
     while pos < len(sheet):
         
         # raises TokenError
         pos,kind,token = lex.token(sheet,pos)
-        
         
         if kind == "tempo":
             tempo = token/60
@@ -52,7 +55,7 @@ def compile(sheet):
                 beat = 0
 
         elif kind == "note":
-            tie,lower,upper,note,fraction,dots,stacato = token
+            tie,lower,upper,step,fraction,dots,stacato = token
             
             duration = beats_per_whole/fraction
             duration *= 2 - 0.5**dots
@@ -63,9 +66,11 @@ def compile(sheet):
             beat += beats
             
             # equal temperament scale
-            frequency = A0*2**(octave + upper - lower + note/12)
+            # frequency = A0*2**(octave + upper - lower + step/12)
+            sound = instrument.play(duration,octave + upper - lower, step)
+            pysound.add(track,time,sound)
             
-            output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
+            #output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
             time += beats/tempo
             
         elif kind == "rest":
@@ -80,5 +85,5 @@ def compile(sheet):
             raise CompileError("Unable to process token: " + kind)
         
     
-    return output
+    return track
     
