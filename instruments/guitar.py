@@ -31,7 +31,7 @@ class Guitar:
         ]
         
         ff = list(map(lambda exp: A0*2**(exp/12),self.strings))
-
+        
         self.parameters = {
                 "neck length"                       : 0.650,
                 "pluck position"                    : 0.25*0.650,

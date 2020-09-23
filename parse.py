@@ -5,8 +5,7 @@ from pysound import add
 import numpy as np
 
 def compile(instrument,sheet):
-    sheet = lex.preprocess(sheet)
-    
+        
     # defaults
     volume = 100
     tempo = 120/60 # beats per second
@@ -18,17 +17,12 @@ def compile(instrument,sheet):
     # output = ""
     beat = 0
     measure_number = -1
-    pos = 0
+    index = 0
     time = 0
     track = np.zeros((1,))
     
     
-    while pos < len(sheet):
-        start = pos
-        # raises TokenError
-        pos,kind,token = lex.token(sheet,pos)
-        end = pos
-        print(sheet[start:end])
+    for kind,token in lex.tokens(sheet):
         
         if kind == "tempo":
             tempo = token/60

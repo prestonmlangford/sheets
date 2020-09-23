@@ -12,16 +12,16 @@ def copy_repeats(sheet):
         
         match = _rgx_repeat.match(sheet[pos:])
         if not match:
-            raise TokenError("Unmatched repeat sign in measure",sheet,pos)
+            raise TokenError("Unmatched repeat sign")
         
         body,_,digits,colons = match.groups()
         start, end = match.span()
         
         if sheet[pos + start - 2] != '|':
-            raise TokenError("Repeat sign not at start of measure",sheet,pos)
+            raise TokenError("Repeat sign not at start of measure")
         
         if sheet[pos + end] != '|':
-            raise TokenError("Repeat sign not at end of measure",sheet,pos)
+            raise TokenError("Repeat sign not at end of measure")
         
         if digits is not None:
             num = int(digits)
@@ -29,7 +29,7 @@ def copy_repeats(sheet):
             num = len(colons)
         else:
             # this shouldn't happen if there was a match
-            raise TokenError("Unknown repeat sign match error",sheet,pos)
+            raise TokenError("Unknown repeat sign match error")
         
         dups = body
         for _ in range(num):
@@ -65,77 +65,88 @@ def preprocess(sheet):
     # make all whitespace single space B\n|\tA -> B | A
     sheet = re.sub(r"\s+"," ",sheet)
     
-    # trim leading whitespace
-    sheet = sheet.lstrip(' ')
-    
     # duplicate repeated measures
     sheet = copy_repeats(sheet)
+    
+    # trim leading/trailing whitespace
+    sheet = sheet.lstrip()
+    sheet = sheet.rstrip()
     
     # debug
     #print(sheet.replace(' ','+'))
     
-    return sheet
+    return enumerate(sheet.split(' '))
 
 # these are compiled in advance for efficiency
 # see https://regexr.com for help
-_rgx_bar = re.compile(r"\|\s")
-_rgx_repeat = re.compile(r"\:\s(.[^:]+)(\:(\d+)|(\:+))\s")
-_rgx_time = re.compile(r"(\d+)\/(\d+)\s")
-_rgx_volume = re.compile(r"(\d+)\%\s")
-_rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%\s")
-_rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]\s")
-_rgx_note = re.compile(r"(\^?)(\,*)(\'*)(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)(\d*)(\.*)(\`*)\s")
-_rgx_rest = re.compile(r"\_(\d*)(\.*)\s")
+_rgx_bar = re.compile(r"\|")
+_rgx_repeat = re.compile(r"\:\s(.[^:]+)(\:(\d+)|(\:+))")
+_rgx_time = re.compile(r"(\d+)\/(\d+)")
+_rgx_volume = re.compile(r"(\d+)\%")
+_rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%")
+_rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]")
+_rgx_note = re.compile(r"(\^?)(\,*)(\'*)(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)(\d*)(\.*)(\`*)")
+_rgx_rest = re.compile(r"\_(\d*)(\.*)")
 
 
-# returns (position in string,type of expression,quantified expression) 
+# yields (type of expression,quantified expression)
 # raises an exception if there is no match
-def token(sheet,position):    
-    match = _rgx_bar.match(sheet[position:])
-    if match:
-        return match.end()+position,"bar", None
+def tokens(sheet):
+    for i,s in preprocess(sheet):
 
-    match = _rgx_time.match(sheet[position:])
-    if match:
-        num, den = match.groups()
-        return match.end()+position,"time", (int(num),int(den))
-
-    match = _rgx_volume.match(sheet[position:])
-    if match:
-        volume = match.group(1)
-        return match.end()+position,"volume", int(volume)
-
-    match = _rgx_dynamic.match(sheet[position:])
-    if match:
-        return match.end()+position,"dynamic", None # PMLFIXME
-
-    match = _rgx_tempo.match(sheet[position:])
-    if match:
-        tempo = match.group(1)
-        return match.end()+position,"tempo", int(tempo)
-
-    match = _rgx_note.match(sheet[position:])
-    if match:
-        tie,lower,upper,note,fraction,dots,stacato = match.groups()
+        match = _rgx_bar.match(s)
+        if match:
+            yield "bar", None
+            continue
         
-        return match.end()+position,"note",(
-            tie is not '',
-            len(lower),
-            len(upper),
-            notation.scale[note],
-            1 if fraction is '' else int(fraction),
-            len(dots),
-            len(stacato)
-        )
+        match = _rgx_time.match(s)
+        if match:
+            num, den = match.groups()
+            yield "time", (int(num),int(den))
+            continue
 
-    match = _rgx_rest.match(sheet[position:])
-    if match:
-        fraction,dots = match.groups()
-        fraction = 1 if fraction is '' else fraction
+        match = _rgx_volume.match(s)
+        if match:
+            volume = match.group(1)
+            yield "volume", int(volume)
+            continue
+
+        match = _rgx_dynamic.match(s)
+        if match:
+            yield "dynamic", None # PMLFIXME
+            continue
+
+        match = _rgx_tempo.match(s)
+        if match:
+            tempo = match.group(1)
+            yield "tempo", int(tempo)
+            continue
+
+        match = _rgx_note.match(s)
+        if match:
+            tie,lower,upper,note,fraction,dots,stacato = match.groups()
+            
+            yield "note",(
+                tie is not '',
+                len(lower),
+                len(upper),
+                notation.scale[note],
+                1 if fraction is '' else int(fraction),
+                len(dots),
+                len(stacato)
+            )
+            continue
+
+        match = _rgx_rest.match(s)
+        if match:
+            fraction,dots = match.groups()
+            fraction = 1 if fraction is '' else fraction
+            
+            yield "rest", (
+                int(fraction),
+                len(dots)
+            )
+            continue
         
-        return match.end()+position,"rest", (
-            int(fraction),
-            len(dots)
-        )
-
-    raise TokenError("Unknown symbol in measure",sheet,position)
+        
+        raise TokenError("Unknown symbol: " + s)
