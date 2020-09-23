@@ -12,7 +12,7 @@ def compile(instrument,sheet):
     tempo = 120/60 # beats per second
     beats_per_whole = 4 # beats in 4/4 time
     beats_per_measure = 4 # beats in 4/4 time
-    octave = 4 # treble clef?
+    octave = 3 # treble clef?
     
     # loop variables
     # output = ""
@@ -69,7 +69,7 @@ def compile(instrument,sheet):
             
             # equal temperament scale
             # frequency = A0*2**(octave + upper - lower + step/12)
-            sound = instrument.play(volume,duration,octave + upper - lower, step)
+            sound = instrument.play(volume,duration/tempo,octave + upper - lower, step)
             track = add(track,time,sound)
             #output += "i 1 {:.3f} {:.3f} {:.3f} {:.3f}\n".format(time,duration/tempo,frequency,volume/100)
             time += beats/tempo

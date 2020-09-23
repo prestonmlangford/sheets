@@ -81,6 +81,7 @@ class Guitar:
         return self.pluck(duration,string,fret)
     
     def minfret(self,octave,step):
+        # PMLFIXME add exception for case where note is too low to be played
         result = None
         fn = 12*octave + step
         _minfret = 100000
