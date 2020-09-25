@@ -4,11 +4,20 @@ Comments work the same as c comments
 /* comments
 also go here */
 
+Macros can be used for text substitution
+define macro M with $M followed by white space and then the remaining text on that line
+$my_macro abcd
+multline macros can be defined with \ 
+%other_macro wxyz \ 
+             qrst
+
+
+
 Signature markings are preceded by the @ symbol
-4/4 time -> @4/4
-treble clef -> @treble
-50% volume -> @50%
-120 beats per minute -> @120BPM
+4/4 time -> 4/4
+treble clef -> treble
+50% volume -> 50%
+120 beats per minute -> 120BPM
 
 Signature markings can be placed anywhere in the file
 
@@ -36,7 +45,7 @@ Repeat: Repeat sequence from start to end of repeat section natural number of ti
 
 |: A B C D | E F G2 :| => | A B C D | E F G2 | A B C D | E F G2 |
 
-":" or ":N" token must come at the of the measure or it will be ignored and a warning generated
+":" or ":N" repeat symbols must come at the start or end of the measure
 
 Pitch / Note: A A#/Bb B C C#/Db D D#/Eb E F F#/Gb G G#/Ab
 
@@ -83,8 +92,12 @@ Bb8`` <=> Bb32 _16.
 
 Chords: Notes played at the same time.
 A-B-C A#-Bb-Db ''A-'A-A-,A-,,A
+
 Chords can be tied
-|A4-B4-C4 ^A4-C4-D4 B4-^C4-D2| 
+|A4-B4-C4 ^A4-C4-D4 B4-^C4-D2|
+
+Chords can have different note lengths played at the same starting time
+|A2-B4-C4 E4 F4 G4 | A2.-B4-C4 A2 | 
 
 Volume marks: Set the volume for notes following
 0% 33% 80% 100% 
@@ -97,3 +110,12 @@ Dynamic markings are not allowed to be nested
 
 Mary Had a Little Lamb
 Treble 4/4 120BPM | E4. D8 C4 D4 | E4 E4 E2 | D4 D4 D2 | E4 G4 G2 | E4. D8 C4 D4 | E4 E4 E4 E4 | D4 D4 E4 D4 | C |
+
+Possible Guitar notation:
+
+May want to "tab sheets" where a chord is specified and strummed by the guitar with a certain cadence. 
+
+or! 
+Realize that any chord can be transformed to a chord in the above notation
+Chords could be implemented as above with a macro substition
+$C A-B-C
