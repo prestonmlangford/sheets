@@ -86,9 +86,21 @@ _rgx_volume = re.compile(r"(\d+)\%")
 _rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%")
 _rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]")
 _rgx_rest = re.compile(r"\_(\d*)(\.*)")
-_note = r"A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G"
-_rgx_note = re.compile(r"(\,*)(\'*)(" + _note + r")(\d*)(\.*)(\`*)")
-_rgx_pitch = re.compile(r"(\,*)(\'*)")
+
+_note = r"(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)"
+_duration = r"(w|h|q|e|s|t|\d*)"
+_durmod = r"([.`]*)"
+_octave = r"(\d*)"
+_octmod = r"([,']*)"
+_rgx_note = re.compile(_durmod + _duration + _note + _octave + _octmod)
+_rgx_chord = re.compile(_durmod + _duration + r"\((.*)\)" + _octmod)
+_rgx_pitch = re.compile(_note + _octave + _octmod)
+
+def count(s,symbol):
+    result = 0
+    for c in s:
+        result += 1 if c == symbol else 0
+    return result
 
 # yields (type of expression,quantified expression)
 # raises an exception if there is no match
@@ -125,7 +137,7 @@ def tokens(sheet):
 
         match = _rgx_note.match(s)
         if match:
-            tie,lower,upper,note,fraction,dots,stacato = match.groups()
+            lower,upper,note,fraction,dots,stacato = match.groups()
             
             yield "note",(
                 tie is not '',
@@ -137,7 +149,11 @@ def tokens(sheet):
                 len(stacato)
             )
             continue
-
+        
+        match = _rgx_chord.match(s)
+        if match:
+            
+        
         match = _rgx_rest.match(s)
         if match:
             fraction,dots = match.groups()
