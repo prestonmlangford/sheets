@@ -5,7 +5,7 @@ from pysound import add
 import numpy as np
 
 def compile(instrument,sheet):
-        
+    
     # defaults
     volume = 100
     tempo = 120/60 # beats per second
@@ -14,10 +14,8 @@ def compile(instrument,sheet):
     octave = 3 # treble clef?
     
     # loop variables
-    # output = ""
     beat = 0
     measure_number = -1
-    index = 0
     time = 0
     track = np.zeros((1,))
     
@@ -75,7 +73,10 @@ def compile(instrument,sheet):
             rest *= 2 - 0.5**dots
             
             beat += rest
-            
+        
+        elif instrument.parse(kind,token):
+            print()
+        
         else:
             raise CompileError("Unable to process token: " + kind)
         

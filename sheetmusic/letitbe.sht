@@ -1,0 +1,15 @@
+/*
+Let it be
+John Lennon & Paul McCartney
+*/
+
+//Chord definitions
+$CM ( _ 3 2 0 1 0)
+$GM ( _ 3 2 0 1 0)
+
+//Signature
+71bpm
+4/4
+f
+
+|$CM4 $CM4 $GM4 $GM4 |

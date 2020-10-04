@@ -85,9 +85,10 @@ _rgx_time = re.compile(r"(\d+)\/(\d+)")
 _rgx_volume = re.compile(r"(\d+)\%")
 _rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%")
 _rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]")
-_rgx_note = re.compile(r"(\^?)(\,*)(\'*)(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)(\d*)(\.*)(\`*)")
 _rgx_rest = re.compile(r"\_(\d*)(\.*)")
-
+_note = r"A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G"
+_rgx_note = re.compile(r"(\,*)(\'*)(" + _note + r")(\d*)(\.*)(\`*)")
+_rgx_pitch = re.compile(r"(\,*)(\'*)")
 
 # yields (type of expression,quantified expression)
 # raises an exception if there is no match
