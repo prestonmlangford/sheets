@@ -14,6 +14,11 @@ import scipy.fftpack
 def dst(x):
     return np.real(scipy.fftpack.dst(x,type=1))/2
 
+def read_co_file(path):
+    f = open(path,'r')
+    lines = f.readlines()
+    f.close()
+    return [float(line.strip()) for line in lines]    
 
 class Guitar:
     def __init__(self):
@@ -75,6 +80,8 @@ class Guitar:
             "b7"     : [None,2,1,2,0,2],
             
         }
+        
+        self.body = read_co_file("body.txt")
 
     def play(self,volume,duration,octave,step):
         string, fret = self.minfret(octave,step)
@@ -141,7 +148,8 @@ class Guitar:
         qt = q*t
         v = np.exp(pt)*(np.cos(qt) + beta*np.sin(qt))
         ux = np.dot(v,v0Lwcosw)[:,0]
-        return linen(ux,att,dec)
+        bridge = np.convolve(ux,self.body)
+        return linen(bridge,att,dec)
 
         
         # a[0]*y[n] = b[0]*x[n] + b[1]*x[n-1] + ... + b[M]*x[n-M] - a[1]*y[n-1] - ... - a[N]*y[n-N]

@@ -73,7 +73,7 @@ u = idst(v)
 vp = y[:,N:2*N]
 up = idst(vp)
 bridge = goertzel(v,w)
-plt.plot(t,bridge)
+#plt.plot(t,bridge)
 
 # normalize to [-1,1]
 z = np.zeros((samples,1))
@@ -92,15 +92,15 @@ line, = plt.plot([], [])
 
 
 def init():
-    ax.set_xlim(( 0, N - 1))
-    ax.set_ylim((-10, 1))
+    ax.set_xlim(( 0, L))
+    ax.set_ylim((-1, 1))
     return (line,)
 
 def update(i):
-    #line.set_data(x, u_plot[i,:])
+    line.set_data(x, u_plot[i,:])
     #line.set_data(x, up_plot[i,:])
     #line.set_data(k, v_plot[i,:])
-    line.set_data(k, logv_plot[i,:])
+    #line.set_data(k, logv_plot[i,:])
     return (line,)
 
 anim = animate(fig, update, init_func=init, frames=samples, interval=1, blit=True)

@@ -85,7 +85,7 @@ _rgx_time = re.compile(r"(\d+)\/(\d+)")
 _rgx_volume = re.compile(r"(\d+)\%")
 _rgx_dynamic = re.compile(r"\d+%\s<\s.*<\s\d+%")
 _rgx_tempo = re.compile(r"(\d+)[Bb][Pp][Mm]")
-_rgx_rest = re.compile(r"\_(\d*)(\.*)")
+
 
 _note = r"(A#|Ab|A|Bb|B|C#|C|D#|Db|D|Eb|E|F#|F|G#|Gb|G)"
 _duration = r"(w|h|q|e|s|t|\d*)"
@@ -95,6 +95,7 @@ _octmod = r"([,']*)"
 _rgx_note = re.compile(_durmod + _duration + _note + _octave + _octmod)
 _rgx_chord = re.compile(_durmod + _duration + r"\((.*)\)" + _octmod)
 _rgx_pitch = re.compile(_note + _octave + _octmod)
+_rgx_rest = re.compile(_durmod + _duration + r"\_")
 
 def count(s,symbol):
     result = 0
@@ -137,11 +138,18 @@ def tokens(sheet):
 
         match = _rgx_note.match(s)
         if match:
-            lower,upper,note,fraction,dots,stacato = match.groups()
+            durmod,fraction,pitch,octave,octavemod = match.groups()
             
+            if fraction in notation.duration:
+                fraction = notation.duration[fraction]
+            elif fraction is '':
+                fraction = 1
+            else:
+                fraction = int(fraction)
+                
             yield "note",(
-                tie is not '',
-                len(lower),
+                count(durmod,'`'),
+                count(durmod,'.')
                 len(upper),
                 notation.scale[note],
                 1 if fraction is '' else int(fraction),
@@ -150,17 +158,20 @@ def tokens(sheet):
             )
             continue
         
-        match = _rgx_chord.match(s)
-        if match:
-            
         
         match = _rgx_rest.match(s)
         if match:
-            fraction,dots = match.groups()
-            fraction = 1 if fraction is '' else fraction
+            dots,fraction = match.groups()
+            
+            if fraction in notation.duration:
+                fraction = notation.duration[fraction]
+            elif fraction is '':
+                fraction = 1
+            else:
+                fraction = int(fraction)
             
             yield "rest", (
-                int(fraction),
+                fraction,
                 len(dots)
             )
             continue
