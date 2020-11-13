@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.io.wavfile
 
+fs = 44100
+
 def read(file):
     rate, data = scipy.io.wavfile.read(file)
     print(
@@ -10,7 +12,7 @@ def read(file):
     )
     return data[:,0] + data[:,1]
 
-def write(file,data,fs=44100):
+def write(file,data):
     max_data = np.max(np.abs(data))
     scaled_data = 8000*data/max_data
     scipy.io.wavfile.write(
